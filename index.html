@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manan Saini Photo Editor</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .editor-container {
+            background: #181818;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+            text-align: center;
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+        }
+        .logo-3d-container {
+            perspective: 1000px;
+            margin-bottom: 15px;
+        }
+        .logo-3d {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #1DB954, #121212);
+            border: 2px solid #1DB954;
+            animation: spin3d 4s infinite linear;
+            box-shadow: 0 0 20px rgba(29, 185, 84, 0.5);
+        }
+        @keyframes spin3d {
+            0% { transform: rotateX(0deg) rotateY(0deg); }
+            100% { transform: rotateX(360deg) rotateY(360deg); }
+        }
+        .brand-name {
+            color: #1DB954;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            font-size: 1.2rem;
+        }
+        .image-preview {
+            width: 100%;
+            height: 250px;
+            background: #282828;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border: 2px dashed #444;
+        }
+        .image-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            display: none;
+            transition: filter 0.1s;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .control-group label {
+            font-size: 14px;
+            color: #b3b3b3;
+            width: 30%;
+            text-align: left;
+        }
+        input[type="range"] {
+            width: 65%;
+            accent-color: #1DB954;
+        }
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+        button, label.upload-btn {
+            flex: 1;
+            background: #1DB954;
+            border: none;
+            padding: 12px;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            text-align: center;
+            display: inline-block;
+        }
+        button:hover, label.upload-btn:hover {
+            transform: scale(1.05);
+            background: #1ed760;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .ad-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.95);
+            border-radius: 15px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        .ad-text {
+            color: gold;
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="editor-container">
+    <div class="logo-3d-container">
+        <div class="logo-3d"></div>
+    </div>
+    <div class="brand-name">Manan Saini Photo Editor</div>
+    
+    <div class="image-preview" id="preview-container">
+        <span id="placeholder-text" style="color:#777;">No image selected</span>
+        <img id="preview" alt="Edited preview" />
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Brightness</label>
+            <input type="range" id="brightness" min="0" max="200" value="100" oninput="applyFilters()">
+        </div>
+        <div class="control-group">
+            <label>Contrast</label>
+            <input type="range" id="contrast" min="0" max="200" value="100" oninput="applyFilters()">
+        </div>
+        <div class="control-group">
+            <label>Saturation</label>
+            <input type="range" id="saturation" min="0" max="200" value="100" oninput="applyFilters()">
+        </div>
+        <div class="control-group">
+            <label>Sepia</label>
+            <input type="range" id="sepia" min="0" max="100" value="0" oninput="applyFilters()">
+        </div>
+    </div>
+
+    <div class="buttons">
+        <label class="upload-btn">
+            Upload Image
+            <input type="file" id="upload" accept="image/*">
+        </label>
+        <button onclick="triggerDownload()">Download</button>
+    </div>
+
+    <!-- Ad Network Simulator -->
+    <div class="ad-overlay" id="ad">
+        <div class="ad-text">Sponsor Ad</div>
+        <p style="color: #b3b3b3; margin-bottom: 20px;">Support the creator to download...</p>
+        <button style="background: transparent; border: 2px solid white;" onclick="skipAd()">Skip Ad & Download</button>
+    </div>
+</div>
+
+<script>
+    const upload = document.getElementById('upload');
+    const preview = document.getElementById('preview');
+    const placeholder = document.getElementById('placeholder-text');
+    const adOverlay = document.getElementById('ad');
+    
+    // Sliders
+    const brightness = document.getElementById('brightness');
+    const contrast = document.getElementById('contrast');
+    const saturation = document.getElementById('saturation');
+    const sepia = document.getElementById('sepia');
+
+    let currentImage = null;
+    let downloadAttempts = 0;
+
+    upload.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            currentImage = new Image();
+            currentImage.src = url;
+            currentImage.onload = () => {
+                preview.src = url;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+                resetFilters();
+            }
+        }
+    });
+
+    function resetFilters() {
+        brightness.value = 100;
+        contrast.value = 100;
+        saturation.value = 100;
+        sepia.value = 0;
+        applyFilters();
+    }
+
+    function applyFilters() {
+        if (!currentImage) return;
+        const filterStr = `brightness(${brightness.value}%) contrast(${contrast.value}%) saturate(${saturation.value}%) sepia(${sepia.value}%)`;
+        preview.style.filter = filterStr;
+    }
+
+    function triggerDownload() {
+        if (!currentImage) {
+            alert("Please upload an image first!");
+            return;
+        }
+        
+        downloadAttempts++;
+        // Simulate a monetization ad before allowing the download
+        if (downloadAttempts % 2 !== 0) {
+            adOverlay.style.display = 'flex';
+        } else {
+            processDownload();
+        }
+    }
+
+    function skipAd() {
+        adOverlay.style.display = 'none';
+        processDownload();
+    }
+
+    function processDownload() {
+        // Create an invisible canvas to apply filters and export
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = currentImage.width;
+        canvas.height = currentImage.height;
+        
+        // Apply the exact same CSS filters to the canvas context
+        ctx.filter = `brightness(${brightness.value}%) contrast(${contrast.value}%) saturate(${saturation.value}%) sepia(${sepia.value}%)`;
+        
+        // Draw the image onto the canvas
+        ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+        
+        // Trigger the download
+        const link = document.createElement('a');
+        link.download = 'Manan-Saini-Edited.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    }
+</script>
+
+</body>
+</html>
